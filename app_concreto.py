@@ -237,7 +237,7 @@ with tab_resultados:
                 <div style="background-color: #FF0000; padding: 30px; border-radius: 15px; border: 4px solid #900C3F; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
                     <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 1px;">PROTOCOLOS POR PROBABILIDAD DE LLUVIA</h2>
                     <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
-                        ¡Pilas con el agua! Un aumento imprevisto en la humedad nos cambia la relación agua/cemento y golpea directamente la resistencia $f'_c$. 
+                        ¡Pilas con el agua! Un aumento imprevisto en la humedad nos cambia la relación agua/cemento y golpea directamente la resistencia f'c. 
                         Es clave usar un <b>aditivo acelerante</b> para que el concreto fragüe rápido y no se nos lave. 
                         Tengan los <b>plásticos</b> a la mano para cubrir el frente de vaciado ante cualquier llovizna.
                     </p>
