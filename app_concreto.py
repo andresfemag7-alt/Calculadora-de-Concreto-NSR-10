@@ -14,22 +14,26 @@ Autores: Ing. Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda C
 st.set_page_config(page_title="Calculadora NSR-10", layout="wide")
 
 # --- ESTILOS Y FONDO ---
+# Función para gestionar el fondo de pantalla y forzar el tema claro (Light Mode)
 def cargar_estilos_y_fondo():
     try:
+        # Abrimos el archivo de imagen de fondo
         with open("fondo2.png", "rb") as image_file:
+            # Lo convertimos a base64 para inyectarlo en el CSS
             imagen_base64 = base64.b64encode(image_file.read()).decode()
             
+        # Inyectamos CSS agresivo para sobrescribir el modo oscuro del sistema
         css = f"""
         <style>
-        /* FORZAR TEMA CLARO EN ELEMENTOS GLOBALES */
+        /* 1. FORZAMOS VARIABLES GLOBALES: Para que el sistema use colores claros siempre */
         :root {{
             --primary-color: #1F618D;
             --background-color: #FFFFFF;
             --secondary-background-color: #F0F2F6;
             --text-color: #1a252f;
-            --font: "sans serif";
         }}
 
+        /* 2. FONDO DE LA APP: Aplicamos la imagen de fondo fija */
         .stApp {{
             background-image: url(data:image/png;base64,{imagen_base64});
             background-size: cover;
@@ -37,29 +41,43 @@ def cargar_estilos_y_fondo():
             background-attachment: fixed;
         }}
 
-        /* Asegurar que las cajas de texto y selectores se vean nítidos */
-        .stTabs, .stSelectbox, .stNumberInput {{
-            background-color: rgba(255, 255, 255, 0.9) !important;
+        /* 3. TEXTOS GLOBALES: Obligamos a que párrafos, etiquetas y spans sean oscuros */
+        /* Usamos !important para ganarle al 'System Theme' de Streamlit */
+        .stMarkdown, p, span, label, .stWidgetLabel {{
             color: #1a252f !important;
-            padding: 10px;
-            border-radius: 8px;
+            font-weight: 600 !important;
         }}
 
-        /* Color de los textos dentro de los inputs */
+        /* 4. CAJAS DE ENTRADA (Inputs): Fondo blanco sólido para que el texto negro se vea perfecto */
+        .stTabs, .stSelectbox, .stNumberInput, div[data-baseweb="select"], div[data-baseweb="input"] {{
+            background-color: rgba(255, 255, 255, 1) !important;
+            border-radius: 8px !important;
+            color: #1a252f !important;
+        }}
+
+        /* 5. TEXTO DENTRO DE INPUTS: Forzamos color negro en lo que el usuario escribe */
         input {{
             color: #1a252f !important;
+            -webkit-text-fill-color: #1a252f !important;
         }}
 
+        /* 6. TÍTULOS: Azul profesional con sombra blanca para resaltar sobre la imagen */
         h1, h2, h3 {{
             color: #1F618D !important;
             text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
         }}
+
+        /* 7. PESTAÑAS (Tabs): Forzamos que el texto de las pestañas sea legible */
+        button[data-baseweb="tab"] p {{
+            color: #1F618D !important;
+        }}
         </style>
         """
+        # Enviamos todo este código al navegador del usuario
         st.markdown(css, unsafe_allow_html=True)
     except FileNotFoundError:
+        # Aviso por si borran la imagen del repositorio por error
         st.warning("No se encontró el archivo de fondo de pantalla.")
-
 cargar_estilos_y_fondo()
 
 # --- FUNCIÓN DE CLIMA ---
