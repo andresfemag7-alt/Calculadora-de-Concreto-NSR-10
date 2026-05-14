@@ -225,47 +225,47 @@ with tab_resultados:
         temp, prob, ciudad = obtener_clima_por_ciudad(municipio_seleccionado)
         
         if temp is not None:
-            # Título y datos de lectura centrados con estilo profesional
+            # Título y datos de lectura centrados
             st.markdown(f"<h2 style='text-align: center;'>Estado del Tiempo en {ciudad}</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='text-align: center; font-size: 20px;'>Temperatura ambiente: {temp} °C | Probabilidad de precipitación: {prob}%</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center; font-size: 20px;'>Temperatura ambiente: {temp} °C | Probabilidad de lluvia: {prob}%</p>", unsafe_allow_html=True)
             
-            # --- ALERTAS CON COLORES SATURADOS Y MENSAJES DE ALTO NIVEL ---
+            # --- ALERTAS CON COLORES SATURADOS Y MENSAJES CASUALES / PROFESIONALES ---
             
             if prob > 50:
-                # RECUADRO ROJO VIVO: Gestión de Riesgo por Lluvia
+                # RECUADRO ROJO VIVO: Pilas con la lluvia
                 st.markdown(f"""
                 <div style="background-color: #FF0000; padding: 30px; border-radius: 15px; border: 4px solid #900C3F; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
-                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">PROTOCOLO POR ALTA PLUVIOSIDAD</h2>
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">¡OJO! VA A LLOVER</h2>
                     <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
-                        La presencia de lluvia impacta directamente la relación agua/cemento, comprometiendo la resistencia final (f'c). 
-                        Se sugiere la integración de un <b>aditivo acelerante</b> para blindar la mezcla contra el lavado. 
-                        Indispensable el uso de <b>plásticos de polietileno</b> para cubrir el frente de vaciado y controlar el aporte de humedad externa.
+                        El agua de lluvia nos va a tirar la relación agua/cemento al piso y eso daña la resistencia $f'_c$. 
+                        Metamos un <b>aditivo acelerante</b> de una vez para que el concreto no se nos lave. 
+                        Tengan los <b>plásticos</b> listos para tapar el frente de vaciado apenas caiga la primera gota.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
 
             elif temp > 28:
-                # RECUADRO NARANJA VIVO: Gestión de Fraguado en Calor
+                # RECUADRO NARANJA VIVO: Sol fuerte
                 st.markdown(f"""
                 <div style="background-color: #FF4500; padding: 30px; border-radius: 15px; border: 4px solid #D35400; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
-                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">GESTIÓN DE FRAGUADO BAJO ALTAS TEMPERATURAS</h2>
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">EL SOL ESTÁ FUERTE</h2>
                     <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
-                        El calor extremo acelera la evaporación del agua de curado, elevando el riesgo de fisuras por contracción plástica. 
-                        Es estratégico el uso de <b>plastificantes o retardantes</b> para mantener la trabajabilidad. 
-                        Se aconseja humedecer formaletas y agregados antes del vaciado para estabilizar la temperatura interna del elemento.
+                        Con este calor, el agua se evapora volando y nos van a salir grietas por contracción plástica. 
+                        Es clave usar un <b>plastificante o retardante</b> para que la mezcla aguante. 
+                        Peguen una buena mojada a las formaletas y a los agregados antes de arrancar para refrescar el vaciado.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
 
             else:
-                # RECUADRO VERDE VIVO: Condiciones Óptimas
+                # RECUADRO VERDE VIVO: Todo firme
                 st.markdown(f"""
                 <div style="background-color: #00C851; padding: 30px; border-radius: 15px; border: 4px solid #007E33; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
-                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">CONDICIONES ÓPTIMAS DE VACIADO</h2>
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">CLIMA PERFECTO</h2>
                     <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
-                        El ambiente actual favorece un desarrollo de resistencia estable según el diseño original. 
-                        No se requiere intervención química adicional. Enfoque el esfuerzo en un <b>vibrado homogéneo</b> 
-                        y un acabado superficial de alta calidad para garantizar la durabilidad de la estructura.
+                        Las condiciones están de nuestro lado para que el diseño pegue bien. 
+                        No necesitamos químicos raros hoy. Dele con el diseño normal, aseguren un <b>buen vibrado</b> 
+                        y dejen ese acabado bien pulido para que la estructura quede 1A.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
