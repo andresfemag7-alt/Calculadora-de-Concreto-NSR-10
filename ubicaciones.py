@@ -1,0 +1,38 @@
+# ubicaciones.py
+# Este módulo centraliza la base de datos geográfica para evitar saturar el código principal app_concreto.py
+
+lugares_colombia = {
+    "Seleccione...": ["Seleccione un departamento primero"],
+    "Amazonas": ["Leticia", "Puerto Nariño", "El Encanto", "La Chorrera", "La Pedrera", "Mirití-Paraná", "Puerto Alegría", "Puerto Arica", "Puerto Santander", "Tarapacá"],
+    "Antioquia": ["Medellín", "Bello", "Itagüí", "Envigado", "Apartadó", "Rionegro", "Sabaneta", "Turbo", "Caucasia", "Caldas"],
+    "Arauca": ["Arauca", "Arauquita", "Saravena", "Tame", "Fortul", "Puerto Rondón", "Cravo Norte"],
+    "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Puerto Colombia", "Sabanalarga", "Baranoa", "Galapa", "Palmar de Varela", "Santo Tomás", "Tubará"],
+    "Bolívar": ["Cartagena", "Magangué", "Turbaco", "El Carmen de Bolívar", "Arjona", "Maria La Baja", "San Juan Nepomuceno", "Mompox", "Santa Rosa del Sur", "Talaigua Nuevo"],
+    "Boyacá": ["Tunja", "Duitama", "Sogamoso", "Chiquinquirá", "Paipa", "Moniquirá", "Puerto Boyacá", "Villa de Leyva", "Garagoa", "Samacá"],
+    "Caldas": ["Manizales", "La Dorada", "Villamaría", "Chinchiná", "Riosucio", "Anserma", "Salamina", "Neira", "Aguadas", "Pensilvania"],
+    "Caquetá": ["Florencia", "San Vicente del Caguán", "Puerto Rico", "Belén de los Andaquíes", "Cartagena del Chairá", "El Doncello", "El Paujil", "Montañita", "Morelia", "Solano"],
+    "Casanare": ["Yopal", "Aguazul", "Villanueva", "Tauramena", "Monterrey", "Paz de Ariporo", "Hato Corozal", "Maní", "Orocué", "San Luis de Palenque"],
+    "Cauca": ["Popayán", "Santander de Quilichao", "Puerto Tejada", "Patía", "Piendamó", "Corinto", "El Tambo", "Miranda", "Caloto", "Guapi"],
+    "Cesar": ["Valledupar", "Aguachica", "Agustín Codazzi", "Bosconia", "Chimichagua", "Curumaní", "El Paso", "La Jagua de Ibirico", "La Paz", "San Diego"],
+    "Chocó": ["Quibdó", "Istmina", "Condoto", "Tadó", "Bahía Solano", "Nuquí", "Riosucio", "Acandí", "Alto Baudó", "Bagadó"],
+    "Córdoba": ["Montería", "Cereté", "Sahagún", "Lorica", "Planeta Rica", "Montelíbano", "Tierralta", "Ciénaga de Oro", "Chinú", "Ayapel"],
+    "Cundinamarca": ["Bogotá", "Soacha", "Chía", "Zipaquirá", "Fusagasugá", "Girardot", "Facatativá", "Mosquera", "Madrid", "Funza"],
+    "Guainía": ["Inírida", "Barrancominas", "Cacahual", "La Guadalupe", "Mapiripana", "Pana Pana", "Puerto Colombia", "Morichal"],
+    "Guaviare": ["San José del Guaviare", "Calamar", "El Retorno", "Miraflores"],
+    "Huila": ["Neiva", "Pitalito", "Garzón", "La Plata", "San Agustín", "Gigante", "Campoalegre", "Rivera", "Isnos", "Palermo"],
+    "La Guajira": ["Riohacha", "Maicao", "Uribia", "Manaure", "San Juan del Cesar", "Fonseca", "Barrancas", "Dibulla", "Villanueva", "Hatonuevo"],
+    "Magdalena": ["Santa Marta", "Ciénaga", "Fundación", "El Banco", "Plato", "Aracataca", "Pivijay", "Santa Ana", "Sitionuevo", "Zona Bananera"],
+    "Meta": ["Villavicencio", "Acacías", "Granada", "Puerto López", "Puerto Gaitán", "San Martín", "Mesetas", "Vista Hermosa", "Cumaral", "Castilla La Nueva"],
+    "Nariño": ["Pasto", "Ipiales", "Tumaco", "Túquerres", "Samaniego", "El Charco", "Barbacoas", "La Unión", "Olaya Herrera", "Cumbal"],
+    "Norte de Santander": ["Cúcuta", "Ocaña", "Pamplona", "Villa del Rosario", "Los Patios", "Tibú", "Ábrego", "Chinácota", "Teorama", "El Zulia"],
+    "Putumayo": ["Mocoa", "Puerto Asís", "Orito", "Valle del Guamuez", "Sibundoy", "Puerto Leguízamo", "Villagarzón", "Santiago", "San Francisco", "Puerto Caicedo"],
+    "Quindío": ["Armenia", "Calarcá", "Circasia", "La Tebaida", "Montenegro", "Quimbaya", "Salento", "Filandia", "Pijao", "Génova"],
+    "Risaralda": ["Pereira", "Dosquebradas", "Santa Rosa de Cabal", "La Virginia", "Belén de Umbría", "Marsella", "Quinchía", "Santuario", "Apía", "Mistrató"],
+    "San Andrés y Providencia": ["San Andrés", "Providencia", "Santa Catalina"],
+    "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "Barrancabermeja", "San Gil", "Socorro", "Barbosa", "Vélez", "El Carmen de Chucurí"],
+    "Sucre": ["Sincelejo", "Corozal", "San Marcos", "Tolú", "Sampués", "Ovejas", "San Onofre", "Majagual", "Los Palmitos", "Galeras"],
+    "Tolima": ["Ibagué", "Espinal", "Melgar", "Mariquita", "Honda", "Líbano", "Chaparral", "Guamo", "Purificación", "Ortega"],
+    "Valle del Cauca": ["Cali", "Buenaventura", "Palmira", "Tuluá", "Buga", "Cartago", "Jamundí", "Yumbo", "Candelaria", "Florida"],
+    "Vaupés": ["Mitú", "Carurú", "Taraira", "Pacoa", "Papunaua", "Yavaraté"],
+    "Vichada": ["Puerto Carreño", "La Primavera", "Santa Rosalía", "Cumaribo"]
+}
