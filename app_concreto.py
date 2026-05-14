@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import base64
+import requests
 
 """
 Función del programa: APLICACIÓN WEB PARA DISEÑO DE MEZCLAS DE CONCRETO
@@ -42,9 +43,22 @@ def cargar_estilos_y_fondo():
         """
         st.markdown(css, unsafe_allow_html=True)
     except FileNotFoundError:
-        st.warning("No se encontró el archivo 'fondo.png' para el fondo de pantalla.")
+        st.warning("No se encontro el archivo de fondo de pantalla.")
 
 cargar_estilos_y_fondo()
+
+# --- FUNCIÓN DE CLIMA ---
+def obtener_clima(lat=4.5339, lon=-75.6811):
+    # Por defecto usa las coordenadas de Armenia, Quindío.
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=precipitation_probability_max&current_weather=true&timezone=America/Bogota"
+    try:
+        respuesta = requests.get(url)
+        datos = respuesta.json()
+        temp = datos['current_weather']['temperature']
+        prob_lluvia = datos['daily']['precipitation_probability_max'][0]
+        return temp, prob_lluvia
+    except:
+        return None, None
 
 # --- LÓGICA MATEMÁTICA ---
 def calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente):
@@ -79,11 +93,17 @@ def calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente):
         baldes_trit = (trit_m3 * 1000) / vol_recipiente
         baldes_agua = agua_l / vol_recipiente
         
+        # Detección dinámica para que el texto sea exacto
+        if "Cuñete" in recipiente:
+            nombre_unidad = "cuñetes"
+        else:
+            nombre_unidad = "baldes"
+            
         resultados_texto = {
             "Cemento": f"{bultos_cemento:.1f} Bultos (50kg)",
-            "Arena": f"{baldes_arena:.1f} baldes/cuñetes",
-            "Triturado": f"{baldes_trit:.1f} baldes/cuñetes",
-            "Agua": f"{baldes_agua:.1f} baldes/cuñetes",
+            "Arena": f"{baldes_arena:.1f} {nombre_unidad}",
+            "Triturado": f"{baldes_trit:.1f} {nombre_unidad}",
+            "Agua": f"{baldes_agua:.1f} {nombre_unidad}",
             "Aditivo": f"{vol_aditivo_L:.2f} Litros" if vol_aditivo_L > 0 else "No aplica"
         }
     else:
@@ -159,3 +179,42 @@ with tab_resultados:
     fig.update_layout(uniformtext_minsize=10, uniformtext_mode='hide', plot_bgcolor="rgba(255,255,255,0.8)")
     
     st.plotly_chart(fig, use_container_width=True)
+
+    # =========================================================
+    # NUEVO MÓDULO: DIAGNÓSTICO DEL CLIMA EN TIEMPO REAL
+    # =========================================================
+    st.markdown("---")
+    st.subheader("Diagnóstico de Campo en Tiempo Real (Armenia, Quindío)")
+    
+    temp_actual, prob_lluvia = obtener_clima()
+    
+    if temp_actual is not None:
+        st.markdown(f"**Temperatura actual:** {temp_actual} grados | **Probabilidad de precipitación:** {prob_lluvia}%")
+        
+        # Alerta roja llamativa por lluvia extrema
+        if prob_lluvia > 50:
+            st.error("ALERTA CRÍTICA: Alta probabilidad de lluvia detectada para la jornada de hoy.")
+            st.markdown("""
+            **Recomendación Técnica:** Se sugiere modificar el diseño incorporando un aditivo **Acelerante**. 
+            Este químico disminuye el tiempo de fraguado inicial, reduciendo drásticamente la vulnerabilidad de la mezcla fresca ante el deslave por lluvia. 
+            Asegúrese de contar con recubrimientos plásticos en la obra.
+            """)
+            
+        # Alerta amarilla/naranja por exceso de calor
+        elif temp_actual > 28:
+            st.warning("ALERTA PREVENTIVA: Temperaturas elevadas detectadas en la zona.")
+            st.markdown("""
+            **Recomendación Técnica:** Se sugiere evaluar el uso de un aditivo **Plastificante** o **Retardante**. 
+            El calor acelera la pérdida de humedad y el fraguado prematuro, lo cual puede generar fisuras por contracción. 
+            Estos aditivos le permitirán mantener la manejabilidad del concreto sin alterar la relación agua/cemento.
+            """)
+            
+        # Mensaje verde o azul de condiciones normales
+        else:
+            st.success("Condiciones climáticas óptimas para el vaciado de concreto estructural.")
+            st.markdown("""
+            **Recomendación Técnica:** Mantenga los protocolos estándar estipulados en la NSR-10. 
+            No se requiere adición de químicos por factores climáticos. Proceda con el curado con agua convencional.
+            """)
+    else:
+        st.warning("No se pudo establecer conexión con el servidor meteorológico en este momento. Verifique las condiciones manualmente.")
