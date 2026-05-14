@@ -7,7 +7,7 @@ import requests
 """
 Función del programa: APLICACIÓN WEB PARA DISEÑO DE MEZCLAS DE CONCRETO
 Nombre del script: app_concreto.py
-Autor: Ing.Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda Carvajal.
+Autor: Ing. Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda Carvajal.
 """
 
 st.set_page_config(page_title="Calculadora NSR-10", layout="wide")
@@ -42,26 +42,39 @@ def cargar_estilos_y_fondo():
 
 cargar_estilos_y_fondo()
 
-# --- NUEVA FUNCIÓN: CLIMA POR IP ---
-def obtener_clima_por_ip():
-    try:
-        # 1. Obtener coordenadas y ciudad basados en la IP del usuario
-        info_ip = requests.get('http://ip-api.com/json/').json()
-        lat = info_ip['lat']
-        lon = info_ip['lon']
-        ciudad = info_ip['city']
+# --- LÓGICA DE LUGARES EN COLOMBIA ---
+# Aquí pueden agregar más departamentos y municipios copiando el mismo formato.
+lugares_colombia = {
+    "Seleccione...": ["Seleccione un departamento primero"],
+    "Antioquia": ["Seleccione...", "Medellín", "Bello", "Itagüí", "Envigado", "Rionegro"],
+    "Bogotá D.C.": ["Seleccione...", "Bogotá"],
+    "Cundinamarca": ["Seleccione...", "Soacha", "Chía", "Zipaquirá", "Cajicá"],
+    "Quindío": ["Seleccione...", "Armenia", "Calarcá", "Montenegro", "Quimbaya", "La Tebaida"],
+    "Risaralda": ["Seleccione...", "Pereira", "Dosquebradas", "Santa Rosa de Cabal"],
+    "Valle del Cauca": ["Seleccione...", "Cali", "Palmira", "Buenaventura", "Buga", "Tuluá"]
+}
 
-        # 2. Obtener el clima usando esas coordenadas exactas
+def obtener_clima_por_ciudad(nombre_ciudad):
+    try:
+        url_geo = f"https://geocoding-api.open-meteo.com/v1/search?name={nombre_ciudad}&count=1&language=es"
+        respuesta_geo = requests.get(url_geo).json()
+        
+        if not respuesta_geo.get("results"):
+            return None, None, "Ciudad no encontrada."
+
+        lat = respuesta_geo["results"][0]["latitude"]
+        lon = respuesta_geo["results"][0]["longitude"]
+        ciudad_detectada = respuesta_geo["results"][0]["name"]
+
         url_clima = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=precipitation_probability_max&current_weather=true&timezone=America/Bogota"
-        respuesta = requests.get(url_clima)
-        datos = respuesta.json()
+        datos = requests.get(url_clima).json()
         
         temp = datos['current_weather']['temperature']
         prob_lluvia = datos['daily']['precipitation_probability_max'][0]
         
-        return temp, prob_lluvia, ciudad
-    except:
-        return None, None, "Desconocida"
+        return temp, prob_lluvia, ciudad_detectada
+    except Exception as e:
+        return None, None, f"Error de conexión"
 
 def calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente):
     if unidades == "Centímetros Cúbicos (cm³)":
@@ -143,6 +156,17 @@ with tab_config:
             "9 Litros (Balde de construcción)",
             "8 Litros (Balde pequeño)"
         ])
+        
+    st.markdown("---")
+    st.subheader("Ubicación de la Obra (Opcional para Diagnóstico de Clima)")
+    # Colocamos los selectores de ubicación en la interfaz principal de configuración
+    col_dep, col_mun = st.columns(2)
+    with col_dep:
+        departamento_seleccionado = st.selectbox("Departamento:", list(lugares_colombia.keys()))
+    with col_mun:
+        # El contenido de este selectbox cambia según el departamento elegido
+        municipios_disponibles = lugares_colombia[departamento_seleccionado]
+        municipio_seleccionado = st.selectbox("Municipio:", municipios_disponibles)
 
 with tab_resultados:
     st.subheader("Cantidades de Material Requeridas")
@@ -175,47 +199,50 @@ with tab_resultados:
     st.plotly_chart(fig, use_container_width=True)
 
     # =========================================================
-    # DIAGNÓSTICO DEL CLIMA EN TIEMPO REAL (POR IP)
+    # DIAGNÓSTICO DEL CLIMA CONDICIONAL
     # =========================================================
     st.markdown("---")
+    st.subheader("Diagnóstico de Campo en Tiempo Real")
     
-    # Extraemos también la ciudad gracias a la nueva función
-    temp_actual, prob_lluvia, ciudad_actual = obtener_clima_por_ip()
-    
-    st.subheader(f"Diagnóstico de Campo en Tiempo Real ({ciudad_actual})")
-    
-    if temp_actual is not None:
-        st.markdown(f"**Temperatura actual:** {temp_actual} grados | **Probabilidad de precipitación:** {prob_lluvia}%")
+    # Validamos que el usuario haya seleccionado una ubicación real
+    if departamento_seleccionado != "Seleccione..." and municipio_seleccionado != "Seleccione...":
         
-        # Alerta roja llamativa con formato más grande (###)
-        if prob_lluvia > 50:
-            st.error("### **ALERTA CRÍTICA: Alta probabilidad de lluvia detectada para la jornada de hoy.**")
+        # Armamos el texto exacto para la búsqueda: "Armenia, Quindío, Colombia"
+        busqueda_exacta = f"{municipio_seleccionado}, {departamento_seleccionado}, Colombia"
+        temp_actual, prob_lluvia, ciudad_actual = obtener_clima_por_ciudad(busqueda_exacta)
+        
+        if temp_actual is not None:
+            st.markdown(f"**Ubicación de obra:** {municipio_seleccionado}, {departamento_seleccionado} | **Temperatura actual:** {temp_actual} °C | **Probabilidad de precipitación:** {prob_lluvia}%")
             
-            # Mensaje directo y concreto si la probabilidad es 100%
-            if prob_lluvia == 100:
-                st.markdown("**AVISO:** La probabilidad es del 100%. Lluvia inminente o precipitación en curso en su ubicación.")
+            if prob_lluvia > 50:
+                st.error("### **ALERTA CRÍTICA: Alta probabilidad de lluvia detectada para la jornada de hoy.**")
                 
-            st.markdown("""
-            **Recomendación Técnica:** Se sugiere modificar el diseño incorporando un aditivo **Acelerante**. 
-            Este químico disminuye el tiempo de fraguado inicial, reduciendo drásticamente la vulnerabilidad de la mezcla fresca ante el deslave por lluvia. 
-            Asegúrese de contar con recubrimientos plásticos en la obra.
-            """)
-            
-        # Alerta amarilla/naranja por exceso de calor con formato más grande (###)
-        elif temp_actual > 28:
-            st.warning("### **ALERTA PREVENTIVA: Temperaturas elevadas detectadas en la zona.**")
-            st.markdown("""
-            **Recomendación Técnica:** Se sugiere evaluar el uso de un aditivo **Plastificante** o **Retardante**. 
-            El calor acelera la pérdida de humedad y el fraguado prematuro, lo cual puede generar fisuras por contracción. 
-            Estos aditivos le permitirán mantener la manejabilidad del concreto sin alterar la relación agua/cemento.
-            """)
-            
-        # Mensaje verde de condiciones normales
+                if prob_lluvia == 100:
+                    st.markdown("**AVISO:** La probabilidad es del 100%. Lluvia inminente o precipitación en curso en su ubicación.")
+                    
+                st.markdown("""
+                **Recomendación Técnica:** Se sugiere modificar el diseño incorporando un aditivo **Acelerante**. 
+                Este químico disminuye el tiempo de fraguado inicial, reduciendo drásticamente la vulnerabilidad de la mezcla fresca ante el deslave por lluvia. 
+                Asegúrese de contar con recubrimientos plásticos en la obra.
+                """)
+                
+            elif temp_actual > 28:
+                st.warning("### **ALERTA PREVENTIVA: Temperaturas elevadas detectadas en la zona.**")
+                st.markdown("""
+                **Recomendación Técnica:** Se sugiere evaluar el uso de un aditivo **Plastificante** o **Retardante**. 
+                El calor acelera la pérdida de humedad y el fraguado prematuro, lo cual puede generar fisuras por contracción. 
+                Estos aditivos le permitirán mantener la manejabilidad del concreto sin alterar la relación agua/cemento.
+                """)
+                
+            else:
+                st.success("### **Condiciones climáticas óptimas para el vaciado de concreto estructural.**")
+                st.markdown("""
+                **Recomendación Técnica:** Mantenga los protocolos estándar estipulados en la NSR-10. 
+                No se requiere adición de químicos por factores climáticos. Proceda con el curado con agua convencional.
+                """)
         else:
-            st.success("### **Condiciones climáticas óptimas para el vaciado de concreto estructural.**")
-            st.markdown("""
-            **Recomendación Técnica:** Mantenga los protocolos estándar estipulados en la NSR-10. 
-            No se requiere adición de químicos por factores climáticos. Proceda con el curado con agua potable.
-            """)
+            st.warning("No se pudo establecer conexión con el servidor meteorológico en este momento. Verifique las condiciones manualmente.")
+    
     else:
-        st.warning("No se pudo establecer conexión con el servidor meteorológico en este momento. Verifique las condiciones manualmente.")
+        # Si falta algún dato, mostramos este mensaje amigable y omitimos los cálculos del clima.
+        st.info("ℹ️ Para recibir un diagnóstico climático y recomendaciones de aditivos en tiempo real, por favor seleccione el **Departamento** y **Municipio** de la obra en la pestaña de configuración.")
