@@ -21,17 +21,35 @@ def cargar_estilos_y_fondo():
             
         css = f"""
         <style>
+        /* FORZAR TEMA CLARO EN ELEMENTOS GLOBALES */
+        :root {{
+            --primary-color: #1F618D;
+            --background-color: #FFFFFF;
+            --secondary-background-color: #F0F2F6;
+            --text-color: #1a252f;
+            --font: "sans serif";
+        }}
+
         .stApp {{
             background-image: url(data:image/png;base64,{imagen_base64});
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }}
+
+        /* Asegurar que las cajas de texto y selectores se vean nítidos */
         .stTabs, .stSelectbox, .stNumberInput {{
             background-color: rgba(255, 255, 255, 0.9) !important;
+            color: #1a252f !important;
             padding: 10px;
             border-radius: 8px;
         }}
+
+        /* Color de los textos dentro de los inputs */
+        input {{
+            color: #1a252f !important;
+        }}
+
         h1, h2, h3 {{
             color: #1F618D !important;
             text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
