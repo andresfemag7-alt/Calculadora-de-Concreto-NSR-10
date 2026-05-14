@@ -213,48 +213,59 @@ with tab_resultados:
     st.metric("Costo Estimado Total (COP)", f"${costo_est:,.2f}")
 
     st.markdown("---")
-   # --- BLOQUE DE DIAGNÓSTICO CLIMÁTICO CORREGIDO Y ESTILIZADO ---
+   # =========================================================
+    # DIAGNÓSTICO CLIMÁTICO Y CRITERIO TÉCNICO EN OBRA
+    # =========================================================
+    st.markdown("---")
+    
+    # Verificamos que el usuario haya seleccionado una ubicación para activar el módulo
     if departamento_seleccionado != "Seleccione..." and municipio_seleccionado != "Seleccione...":
-        # Traemos datos del clima para el municipio seleccionado
+        
+        # Llamada a la función de clima para obtener datos actuales del satélite
         temp, prob, ciudad = obtener_clima_por_ciudad(municipio_seleccionado)
         
         if temp is not None:
-            # Título del clima centrado
-            st.markdown(f"<h2 style='text-align: center;'>Clima en {ciudad}</h2>", unsafe_allow_html=True)
-            # Info de temp y lluvia centrada
-            st.markdown(f"<p style='text-align: center; font-size: 20px;'>Temperatura: {temp} °C | Probabilidad de Lluvia: {prob}%</p>", unsafe_allow_html=True)
+            # Título y datos de lectura centrados con estilo profesional
+            st.markdown(f"<h2 style='text-align: center;'>Estado del Tiempo en {ciudad}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center; font-size: 20px;'>Temperatura ambiente: {temp} °C | Probabilidad de precipitación: {prob}%</p>", unsafe_allow_html=True)
             
-            # --- LÓGICA DE ALERTAS CON COLORES VIVOS Y CENTRADOS ---
+            # --- ALERTAS CON COLORES SATURADOS Y MENSAJES DE ALTO NIVEL ---
+            
             if prob > 50:
-                # Recuadro Rojo Vivo para Lluvia
+                # RECUADRO ROJO VIVO: Gestión de Riesgo por Lluvia
                 st.markdown(f"""
-                <div style="background-color: #FF0000; padding: 25px; border-radius: 10px; border: 3px solid #900C3F; text-align: center;">
-                    <h2 style="color: white; margin: 0; font-weight: 900;">ALERTA DE LLUVIA</h2>
-                    <p style="color: white; font-size: 18px; margin-top: 15px; font-weight: 700;">
-                        Recomendación: Se recomienda el uso de aditivo ACELERANTE para reducir el tiempo de fraguado y evitar el deslave; 
-                        asimismo, es imperativo el empleo de plásticos protectores para evitar el contacto directo del agua de lluvia con la mezcla fresca.
+                <div style="background-color: #FF0000; padding: 30px; border-radius: 15px; border: 4px solid #900C3F; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">PROTOCOLO POR ALTA PLUVIOSIDAD</h2>
+                    <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
+                        La presencia de lluvia impacta directamente la relación agua/cemento, comprometiendo la resistencia final (f'c). 
+                        Se sugiere la integración de un <b>aditivo acelerante</b> para blindar la mezcla contra el lavado. 
+                        Indispensable el uso de <b>plásticos de polietileno</b> para cubrir el frente de vaciado y controlar el aporte de humedad externa.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
 
             elif temp > 28:
-                # Recuadro Naranja Vivo para Calor
+                # RECUADRO NARANJA VIVO: Gestión de Fraguado en Calor
                 st.markdown(f"""
-                <div style="background-color: #FF8C00; padding: 25px; border-radius: 10px; border: 3px solid #E67E22; text-align: center;">
-                    <h2 style="color: white; margin: 0; font-weight: 900;">ALERTA DE CALOR</h2>
-                    <p style="color: white; font-size: 18px; margin-top: 15px; font-weight: 700;">
-                        Recomendación: Se recomienda aditivo PLASTIFICANTE/RETARDANTE para evitar fisuras por evaporación rápida del agua de curado.
+                <div style="background-color: #FF4500; padding: 30px; border-radius: 15px; border: 4px solid #D35400; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">GESTIÓN DE FRAGUADO BAJO ALTAS TEMPERATURAS</h2>
+                    <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
+                        El calor extremo acelera la evaporación del agua de curado, elevando el riesgo de fisuras por contracción plástica. 
+                        Es estratégico el uso de <b>plastificantes o retardantes</b> para mantener la trabajabilidad. 
+                        Se aconseja humedecer formaletas y agregados antes del vaciado para estabilizar la temperatura interna del elemento.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
 
             else:
-                # Recuadro Verde Vivo para Condiciones Óptimas
+                # RECUADRO VERDE VIVO: Condiciones Óptimas
                 st.markdown(f"""
-                <div style="background-color: #2ECC71; padding: 25px; border-radius: 10px; border: 3px solid #27AE60; text-align: center;">
-                    <h2 style="color: white; margin: 0; font-weight: 900;">CONDICIONES ÓPTIMAS</h2>
-                    <p style="color: white; font-size: 18px; margin-top: 15px; font-weight: 700;">
-                        No se requiere el uso de aditivos climáticos adicionales. Proceda con el vaciado estándar.
+                <div style="background-color: #00C851; padding: 30px; border-radius: 15px; border: 4px solid #007E33; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">CONDICIONES ÓPTIMAS DE VACIADO</h2>
+                    <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
+                        El ambiente actual favorece un desarrollo de resistencia estable según el diseño original. 
+                        No se requiere intervención química adicional. Enfoque el esfuerzo en un <b>vibrado homogéneo</b> 
+                        y un acabado superficial de alta calidad para garantizar la durabilidad de la estructura.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
