@@ -54,27 +54,43 @@ lugares_colombia = {
     "Valle del Cauca": ["Seleccione...", "Cali", "Palmira", "Buenaventura", "Buga", "Tuluá"]
 }
 
-def obtener_clima_por_ciudad(nombre_ciudad):
+def obtener_clima_por_ciudad(municipio):
     try:
-        url_geo = f"https://geocoding-api.open-meteo.com/v1/search?name={nombre_ciudad}&count=1&language=es"
-        respuesta_geo = requests.get(url_geo).json()
+        # 1. Búsqueda segura con parámetros (codifica espacios y tildes automáticamente)
+        params_geo = {
+            "name": municipio,
+            "count": 1,
+            "language": "es"
+        }
+        url_geo = "https://geocoding-api.open-meteo.com/v1/search"
+        respuesta_geo = requests.get(url_geo, params=params_geo).json()
         
-        if not respuesta_geo.get("results"):
+        # Validamos si encontró resultados
+        if "results" not in respuesta_geo or not respuesta_geo["results"]:
             return None, None, "Ciudad no encontrada."
 
         lat = respuesta_geo["results"][0]["latitude"]
         lon = respuesta_geo["results"][0]["longitude"]
         ciudad_detectada = respuesta_geo["results"][0]["name"]
 
-        url_clima = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=precipitation_probability_max&current_weather=true&timezone=America/Bogota"
-        datos = requests.get(url_clima).json()
+        # 2. Petición del clima segura
+        params_clima = {
+            "latitude": lat,
+            "longitude": lon,
+            "daily": "precipitation_probability_max",
+            "current_weather": "true",
+            "timezone": "America/Bogota"
+        }
+        url_clima = "https://api.open-meteo.com/v1/forecast"
+        datos = requests.get(url_clima, params=params_clima).json()
         
         temp = datos['current_weather']['temperature']
         prob_lluvia = datos['daily']['precipitation_probability_max'][0]
         
         return temp, prob_lluvia, ciudad_detectada
     except Exception as e:
-        return None, None, f"Error de conexión"
+        # Imprimimos el error real en la variable ciudad_detectada para poder depurar
+        return None, None, f"Error: {e}"
 
 def calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente):
     if unidades == "Centímetros Cúbicos (cm³)":
