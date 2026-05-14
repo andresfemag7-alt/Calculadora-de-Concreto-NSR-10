@@ -4,9 +4,9 @@ import plotly.express as px
 import base64
 
 """
-Función del programa: APLICACIÓN WEB PARA DISEÑO DE MEZCLAS DE CONCRETO (UI MEJORADA)
+Función del programa: APLICACIÓN WEB PARA DISEÑO DE MEZCLAS DE CONCRETO
 Nombre del script: app_concreto.py
-Autor: Andrés Felipe Madroñero Garces IC.
+Autor: Andrés Felipe Madroñero Garces IC & José Arboleda IC.
 """
 
 # Configuración inicial de la página web
