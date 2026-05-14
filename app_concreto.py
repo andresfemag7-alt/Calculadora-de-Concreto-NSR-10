@@ -6,7 +6,7 @@ import base64
 """
 Función del programa: APLICACIÓN WEB PARA DISEÑO DE MEZCLAS DE CONCRETO
 Nombre del script: app_concreto.py
-Autor: Andrés Felipe Madroñero Garces IC & José Arboleda IC.
+Autor: Ing.Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda Carvajal.
 """
 
 # Configuración inicial de la página web
