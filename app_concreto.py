@@ -225,47 +225,47 @@ with tab_resultados:
         temp, prob, ciudad = obtener_clima_por_ciudad(municipio_seleccionado)
         
         if temp is not None:
-            # Título y datos de lectura centrados
+            # Título y datos de lectura centrados con un diseño limpio
             st.markdown(f"<h2 style='text-align: center;'>Estado del Tiempo en {ciudad}</h2>", unsafe_allow_html=True)
             st.markdown(f"<p style='text-align: center; font-size: 20px;'>Temperatura ambiente: {temp} °C | Probabilidad de lluvia: {prob}%</p>", unsafe_allow_html=True)
             
-            # --- ALERTAS CON COLORES SATURADOS Y MENSAJES CASUALES / PROFESIONALES ---
+            # --- ALERTAS CON COLORES VIVOS Y LENGUAJE EQUILIBRADO ---
             
             if prob > 50:
-                # RECUADRO ROJO VIVO: Pilas con la lluvia
+                # RECUADRO ROJO VIVO: Gestión de Riesgo por Lluvia
                 st.markdown(f"""
                 <div style="background-color: #FF0000; padding: 30px; border-radius: 15px; border: 4px solid #900C3F; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
-                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">¡OJO! VA A LLOVER</h2>
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 1px;">PROTOCOLOS POR PROBABILIDAD DE LLUVIA</h2>
                     <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
-                        El agua de lluvia nos va a tirar la relación agua/cemento al piso y eso daña la resistencia $f'_c$. 
-                        Metamos un <b>aditivo acelerante</b> de una vez para que el concreto no se nos lave. 
-                        Tengan los <b>plásticos</b> listos para tapar el frente de vaciado apenas caiga la primera gota.
+                        ¡Pilas con el agua! Un aumento imprevisto en la humedad nos cambia la relación agua/cemento y golpea directamente la resistencia $f'_c$. 
+                        Es clave usar un <b>aditivo acelerante</b> para que el concreto fragüe rápido y no se nos lave. 
+                        Tengan los <b>plásticos</b> a la mano para cubrir el frente de vaciado ante cualquier llovizna.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
 
             elif temp > 28:
-                # RECUADRO NARANJA VIVO: Sol fuerte
+                # RECUADRO NARANJA VIVO: Gestión de Vaciado en Calor
                 st.markdown(f"""
-                <div style="background-color: #FF4500; padding: 30px; border-radius: 15px; border: 4px solid #D35400; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
-                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">EL SOL ESTÁ FUERTE</h2>
+                <div style="background-color: #FF8C00; padding: 30px; border-radius: 15px; border: 4px solid #E67E22; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 1px;">ALERTA POR ALTA TEMPERATURA</h2>
                     <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
-                        Con este calor, el agua se evapora volando y nos van a salir grietas por contracción plástica. 
-                        Es clave usar un <b>plastificante o retardante</b> para que la mezcla aguante. 
-                        Peguen una buena mojada a las formaletas y a los agregados antes de arrancar para refrescar el vaciado.
+                        El calor está fuerte y la evaporación rápida nos puede causar fisuras por contracción plástica. 
+                        Para mantener la trabajabilidad, lo ideal es usar un <b>plastificante o retardante</b>. 
+                        No olviden humedecer bien las formaletas y los agregados antes de arrancar para refrescar el vaciado.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
 
             else:
-                # RECUADRO VERDE VIVO: Todo firme
+                # RECUADRO VERDE VIVO: Condiciones Favorables
                 st.markdown(f"""
-                <div style="background-color: #00C851; padding: 30px; border-radius: 15px; border: 4px solid #007E33; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
-                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 2px;">CLIMA PERFECTO</h2>
+                <div style="background-color: #2ECC71; padding: 30px; border-radius: 15px; border: 4px solid #27AE60; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 1px;">CONDICIONES CLIMÁTICAS ÓPTIMAS</h2>
                     <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
-                        Las condiciones están de nuestro lado para que el diseño pegue bien. 
-                        No necesitamos químicos raros hoy. Dele con el diseño normal, aseguren un <b>buen vibrado</b> 
-                        y dejen ese acabado bien pulido para que la estructura quede 1A.
+                        Tenemos un clima ideal para que el diseño de mezcla se comporte según lo planeado. 
+                        No hace falta ningún aditivo extra por clima; enfóquense en asegurar un <b>buen vibrado</b> 
+                        y un acabado pulido para que la estructura quede 1A.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
