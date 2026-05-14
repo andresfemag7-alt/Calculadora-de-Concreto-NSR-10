@@ -10,17 +10,13 @@ Nombre del script: app_concreto.py
 Autor: Ing.Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda Carvajal.
 """
 
-# Configuración inicial de la página web
 st.set_page_config(page_title="Calculadora NSR-10", layout="wide")
 
-# --- FUNCIÓN DE INYECCIÓN DE CSS (FONDO Y COLORES) ---
 def cargar_estilos_y_fondo():
     try:
-        # Codificamos la imagen local a base64 para inyectarla en el CSS web
         with open("fondo2.png", "rb") as image_file:
             imagen_base64 = base64.b64encode(image_file.read()).decode()
             
-        # Inyectamos el CSS personalizado
         css = f"""
         <style>
         .stApp {{
@@ -29,14 +25,13 @@ def cargar_estilos_y_fondo():
             background-position: center;
             background-attachment: fixed;
         }}
-        /* Fondo blanco semitransparente para los bloques principales */
         .stTabs, .stSelectbox, .stNumberInput {{
             background-color: rgba(255, 255, 255, 0.9) !important;
             padding: 10px;
             border-radius: 8px;
         }}
         h1, h2, h3 {{
-            color: #1F618D !important; /* Azul profesional */
+            color: #1F618D !important;
             text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
         }}
         </style>
@@ -47,20 +42,27 @@ def cargar_estilos_y_fondo():
 
 cargar_estilos_y_fondo()
 
-# --- FUNCIÓN DE CLIMA ---
-def obtener_clima(lat=4.5339, lon=-75.6811):
-    # Por defecto usa las coordenadas de Armenia, Quindío.
-    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=precipitation_probability_max&current_weather=true&timezone=America/Bogota"
+# --- NUEVA FUNCIÓN: CLIMA POR IP ---
+def obtener_clima_por_ip():
     try:
-        respuesta = requests.get(url)
+        # 1. Obtener coordenadas y ciudad basados en la IP del usuario
+        info_ip = requests.get('http://ip-api.com/json/').json()
+        lat = info_ip['lat']
+        lon = info_ip['lon']
+        ciudad = info_ip['city']
+
+        # 2. Obtener el clima usando esas coordenadas exactas
+        url_clima = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=precipitation_probability_max&current_weather=true&timezone=America/Bogota"
+        respuesta = requests.get(url_clima)
         datos = respuesta.json()
+        
         temp = datos['current_weather']['temperature']
         prob_lluvia = datos['daily']['precipitation_probability_max'][0]
-        return temp, prob_lluvia
+        
+        return temp, prob_lluvia, ciudad
     except:
-        return None, None
+        return None, None, "Desconocida"
 
-# --- LÓGICA MATEMÁTICA ---
 def calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente):
     if unidades == "Centímetros Cúbicos (cm³)":
         volumen = volumen / 1000000
@@ -93,7 +95,6 @@ def calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente):
         baldes_trit = (trit_m3 * 1000) / vol_recipiente
         baldes_agua = agua_l / vol_recipiente
         
-        # Detección dinámica para que el texto sea exacto
         if "Cuñete" in recipiente:
             nombre_unidad = "cuñetes"
         else:
@@ -117,11 +118,9 @@ def calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente):
 
     return resultados_texto, costo_argos, costo_cemex, costo_holcim
 
-# --- INTERFAZ WEB (FRONTEND) ---
 st.title("Calculadora de Concreto NSR-10")
 st.markdown("Plataforma técnica para el diseño de mezclas y dosificación en obra.")
 
-# Organización mediante pestañas (Tabs) para un diseño limpio
 tab_config, tab_resultados = st.tabs(["Configuración de la Mezcla", "Resultados y Costos"])
 
 with tab_config:
@@ -149,26 +148,21 @@ with tab_resultados:
     st.subheader("Cantidades de Material Requeridas")
     resultados, c_argos, c_cemex, c_holcim = calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente)
     
-    # Mostrar resultados en columnas para mayor claridad
     col_mat1, col_mat2, col_mat3 = st.columns(3)
     col_mat1.info(f"**Cemento:**\n{resultados['Cemento']}")
     col_mat1.info(f"**Agua:**\n{resultados['Agua']}")
-    
     col_mat2.success(f"**Arena:**\n{resultados['Arena']}")
     col_mat2.success(f"**Aditivo:**\n{resultados['Aditivo']}")
-    
     col_mat3.warning(f"**Triturado:**\n{resultados['Triturado']}")
     
     st.markdown("---")
     st.subheader("Análisis de Costos Comparativos")
     
-    # Creación de gráfico interactivo y vivo usando Plotly
     datos_precios = pd.DataFrame({
         "Marca": ["Argos", "Cemex", "Holcim"],
         "Costo Total (COP)": [c_argos, c_cemex, c_holcim]
     })
     
-    # Definición de una paleta de colores vivos
     fig = px.bar(datos_precios, x="Marca", y="Costo Total (COP)", 
                  text="Costo Total (COP)", 
                  color="Marca",
@@ -181,37 +175,44 @@ with tab_resultados:
     st.plotly_chart(fig, use_container_width=True)
 
     # =========================================================
-    # NUEVO MÓDULO: DIAGNÓSTICO DEL CLIMA EN TIEMPO REAL
+    # DIAGNÓSTICO DEL CLIMA EN TIEMPO REAL (POR IP)
     # =========================================================
     st.markdown("---")
-    st.subheader("Diagnóstico de Campo en Tiempo Real (Armenia, Quindío)")
     
-    temp_actual, prob_lluvia = obtener_clima()
+    # Extraemos también la ciudad gracias a la nueva función
+    temp_actual, prob_lluvia, ciudad_actual = obtener_clima_por_ip()
+    
+    st.subheader(f"Diagnóstico de Campo en Tiempo Real ({ciudad_actual})")
     
     if temp_actual is not None:
         st.markdown(f"**Temperatura actual:** {temp_actual} grados | **Probabilidad de precipitación:** {prob_lluvia}%")
         
-        # Alerta roja llamativa por lluvia extrema
+        # Alerta roja llamativa con formato más grande (###)
         if prob_lluvia > 50:
-            st.error("ALERTA CRÍTICA: Alta probabilidad de lluvia detectada para la jornada de hoy.")
+            st.error("### **ALERTA CRÍTICA: Alta probabilidad de lluvia detectada para la jornada de hoy.**")
+            
+            # Mensaje directo y concreto si la probabilidad es 100%
+            if prob_lluvia == 100:
+                st.markdown("**AVISO:** La probabilidad es del 100%. Lluvia inminente o precipitación en curso en su ubicación.")
+                
             st.markdown("""
             **Recomendación Técnica:** Se sugiere modificar el diseño incorporando un aditivo **Acelerante**. 
             Este químico disminuye el tiempo de fraguado inicial, reduciendo drásticamente la vulnerabilidad de la mezcla fresca ante el deslave por lluvia. 
             Asegúrese de contar con recubrimientos plásticos en la obra.
             """)
             
-        # Alerta amarilla/naranja por exceso de calor
+        # Alerta amarilla/naranja por exceso de calor con formato más grande (###)
         elif temp_actual > 28:
-            st.warning("ALERTA PREVENTIVA: Temperaturas elevadas detectadas en la zona.")
+            st.warning("### **ALERTA PREVENTIVA: Temperaturas elevadas detectadas en la zona.**")
             st.markdown("""
             **Recomendación Técnica:** Se sugiere evaluar el uso de un aditivo **Plastificante** o **Retardante**. 
             El calor acelera la pérdida de humedad y el fraguado prematuro, lo cual puede generar fisuras por contracción. 
             Estos aditivos le permitirán mantener la manejabilidad del concreto sin alterar la relación agua/cemento.
             """)
             
-        # Mensaje verde o azul de condiciones normales
+        # Mensaje verde de condiciones normales
         else:
-            st.success("Condiciones climáticas óptimas para el vaciado de concreto estructural.")
+            st.success("### **Condiciones climáticas óptimas para el vaciado de concreto estructural.**")
             st.markdown("""
             **Recomendación Técnica:** Mantenga los protocolos estándar estipulados en la NSR-10. 
             No se requiere adición de químicos por factores climáticos. Proceda con el curado con agua convencional.
