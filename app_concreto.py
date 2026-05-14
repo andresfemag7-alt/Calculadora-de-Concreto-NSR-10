@@ -215,7 +215,7 @@ with tab_resultados:
             st.success("### **Condiciones climáticas óptimas para el vaciado de concreto estructural.**")
             st.markdown("""
             **Recomendación Técnica:** Mantenga los protocolos estándar estipulados en la NSR-10. 
-            No se requiere adición de químicos por factores climáticos. Proceda con el curado con agua convencional.
+            No se requiere adición de químicos por factores climáticos. Proceda con el curado con agua potable.
             """)
     else:
         st.warning("No se pudo establecer conexión con el servidor meteorológico en este momento. Verifique las condiciones manualmente.")
