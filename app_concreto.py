@@ -4,7 +4,7 @@ import plotly.express as px
 import base64
 import requests
 # Importamos el diccionario de ubicaciones desde el archivo externo
-from ubicaciones import lugares_colombia 
+from ubicaciones.py import lugares_colombia 
 
 """
 Función del programa: APLICACIÓN WEB PARA DISEÑO DE MEZCLAS DE CONCRETO
