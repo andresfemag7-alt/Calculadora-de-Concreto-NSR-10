@@ -10,10 +10,13 @@ Nombre del script: app_concreto.py
 Autor: Ing. Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda Carvajal.
 """
 
+# Configuración inicial de la página web
 st.set_page_config(page_title="Calculadora NSR-10", layout="wide")
 
+# --- FUNCIÓN DE INYECCIÓN DE CSS (FONDO Y COLORES) ---
 def cargar_estilos_y_fondo():
     try:
+        # Codificamos la imagen local a base64 para inyectarla en el CSS web
         with open("fondo2.png", "rb") as image_file:
             imagen_base64 = base64.b64encode(image_file.read()).decode()
             
@@ -43,7 +46,7 @@ def cargar_estilos_y_fondo():
 cargar_estilos_y_fondo()
 
 # --- LÓGICA DE LUGARES EN COLOMBIA ---
-# Aquí pueden agregar más departamentos y municipios copiando el mismo formato.
+# Diccionario que relaciona Departamentos con sus Municipios
 lugares_colombia = {
     "Seleccione...": ["Seleccione un departamento primero"],
     "Antioquia": ["Seleccione...", "Medellín", "Bello", "Itagüí", "Envigado", "Rionegro"],
@@ -54,9 +57,10 @@ lugares_colombia = {
     "Valle del Cauca": ["Seleccione...", "Cali", "Palmira", "Buenaventura", "Buga", "Tuluá"]
 }
 
+# --- FUNCIÓN DEL CLIMA CORREGIDA ---
 def obtener_clima_por_ciudad(municipio):
     try:
-        # 1. Búsqueda segura con parámetros (codifica espacios y tildes automáticamente)
+        # Usamos params para evitar errores con espacios y tildes en la URL
         params_geo = {
             "name": municipio,
             "count": 1,
@@ -65,7 +69,7 @@ def obtener_clima_por_ciudad(municipio):
         url_geo = "https://geocoding-api.open-meteo.com/v1/search"
         respuesta_geo = requests.get(url_geo, params=params_geo).json()
         
-        # Validamos si encontró resultados
+        # Validamos si la API encontró la ciudad
         if "results" not in respuesta_geo or not respuesta_geo["results"]:
             return None, None, "Ciudad no encontrada."
 
@@ -73,7 +77,7 @@ def obtener_clima_por_ciudad(municipio):
         lon = respuesta_geo["results"][0]["longitude"]
         ciudad_detectada = respuesta_geo["results"][0]["name"]
 
-        # 2. Petición del clima segura
+        # Pedimos el clima con las coordenadas exactas
         params_clima = {
             "latitude": lat,
             "longitude": lon,
@@ -89,9 +93,9 @@ def obtener_clima_por_ciudad(municipio):
         
         return temp, prob_lluvia, ciudad_detectada
     except Exception as e:
-        # Imprimimos el error real en la variable ciudad_detectada para poder depurar
-        return None, None, f"Error: {e}"
+        return None, None, f"Error de conexión: {e}"
 
+# --- LÓGICA MATEMÁTICA ---
 def calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente):
     if unidades == "Centímetros Cúbicos (cm³)":
         volumen = volumen / 1000000
@@ -147,6 +151,7 @@ def calcular_mezcla(resistencia, volumen, unidades, marca, aditivo, recipiente):
 
     return resultados_texto, costo_argos, costo_cemex, costo_holcim
 
+# --- INTERFAZ WEB (FRONTEND) ---
 st.title("Calculadora de Concreto NSR-10")
 st.markdown("Plataforma técnica para el diseño de mezclas y dosificación en obra.")
 
@@ -175,12 +180,10 @@ with tab_config:
         
     st.markdown("---")
     st.subheader("Ubicación de la Obra (Opcional para Diagnóstico de Clima)")
-    # Colocamos los selectores de ubicación en la interfaz principal de configuración
     col_dep, col_mun = st.columns(2)
     with col_dep:
         departamento_seleccionado = st.selectbox("Departamento:", list(lugares_colombia.keys()))
     with col_mun:
-        # El contenido de este selectbox cambia según el departamento elegido
         municipios_disponibles = lugares_colombia[departamento_seleccionado]
         municipio_seleccionado = st.selectbox("Municipio:", municipios_disponibles)
 
@@ -220,12 +223,11 @@ with tab_resultados:
     st.markdown("---")
     st.subheader("Diagnóstico de Campo en Tiempo Real")
     
-    # Validamos que el usuario haya seleccionado una ubicación real
+    # Solo buscamos el clima si eligieron municipio
     if departamento_seleccionado != "Seleccione..." and municipio_seleccionado != "Seleccione...":
         
-        # Armamos el texto exacto para la búsqueda: "Armenia, Quindío, Colombia"
-        busqueda_exacta = f"{municipio_seleccionado}, {departamento_seleccionado}, Colombia"
-        temp_actual, prob_lluvia, ciudad_actual = obtener_clima_por_ciudad(busqueda_exacta)
+        # Le enviamos únicamente el municipio a nuestra función corregida
+        temp_actual, prob_lluvia, ciudad_actual = obtener_clima_por_ciudad(municipio_seleccionado)
         
         if temp_actual is not None:
             st.markdown(f"**Ubicación de obra:** {municipio_seleccionado}, {departamento_seleccionado} | **Temperatura actual:** {temp_actual} °C | **Probabilidad de precipitación:** {prob_lluvia}%")
@@ -260,5 +262,4 @@ with tab_resultados:
             st.warning("No se pudo establecer conexión con el servidor meteorológico en este momento. Verifique las condiciones manualmente.")
     
     else:
-        # Si falta algún dato, mostramos este mensaje amigable y omitimos los cálculos del clima.
         st.info("ℹ️ Para recibir un diagnóstico climático y recomendaciones de aditivos en tiempo real, por favor seleccione el **Departamento** y **Municipio** de la obra en la pestaña de configuración.")
