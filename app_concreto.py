@@ -16,7 +16,7 @@ st.set_page_config(page_title="Calculadora NSR-10", layout="wide")
 def cargar_estilos_y_fondo():
     try:
         # Codificamos la imagen local a base64 para inyectarla en el CSS web
-        with open("fondo1.png", "rb") as image_file:
+        with open("fondo2.png", "rb") as image_file:
             imagen_base64 = base64.b64encode(image_file.read()).decode()
             
         # Inyectamos el CSS personalizado
