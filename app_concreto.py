@@ -7,40 +7,12 @@ from ubicaciones import lugares_colombia # Base de datos de municipios
 
 """
 Función del programa: APLICACIÓN WEB PARA DISEÑO DE MEZCLAS DE CONCRETO
-Autores: Ing. Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda Carvajal.
+Nombre del script: app_concreto.py
+Autor: Ing. Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda Carvajal.
 """
 
 # Configuración de pantalla ancha
 st.set_page_config(page_title="Calculadora NSR-10", layout="wide")
-
-# --- BASE DE DATOS DE ADITIVOS ---
-# Base de datos definitiva: Precio único por unidad de litro (COP/L)
-catalogo_precio_por_litro = {
-    "SIKA": {
-        "Acelerante": 34975,         # Basado en Sikaset-L (Garrafa de 5 kg)
-        "Retardante": "Bajo cotización",
-        "Plastificante": 32825,      # Basado en Plastocrete DM (Cuñete)
-        "Para juntas frías": 243994  # Basado en Sikadur-32 Primer (Juego)
-    },
-    "TOXEMENT": {
-        "Acelerante": 25989,         # Basado en Accelguard HE (Garrafa)
-        "Retardante": "Bajo cotización",
-        "Plastificante": "Bajo cotización",
-        "Para juntas frías": 84656    # Basado en Epoxitoc (Galón)
-    },
-    "MASTER BUILDERS": {
-        "Acelerante": "Bajo cotización",
-        "Retardante": "Bajo cotización",
-        "Plastificante": "Bajo cotización",
-        "Para juntas frías": 195000  # Basado en MasterBrace ADH
-    },
-    "Genérico / Otras marcas": {
-        "Acelerante": 0,
-        "Retardante": 0,
-        "Plastificante": 0,
-        "Para juntas frías": 0
-    }
-}
 
 # --- ESTILOS Y FONDO ---
 def cargar_estilos_y_fondo():
@@ -107,13 +79,8 @@ def obtener_clima_por_ciudad(municipio):
 # --- LÓGICA DE CÁLCULO (NSR-10) ---
 def calcular_mezcla(resistencia, volumen, unidades, p_cem, p_are, p_tri, p_adi, recipiente):
     
-    # Conversión a m3 para estandarizar el cálculo (Añadido cm3)
-    if unidades == "Litros (L)":
-        volumen_m3 = volumen / 1000
-    elif unidades == "Centímetros Cúbicos (cm³)":
-        volumen_m3 = volumen / 1000000
-    else:
-        volumen_m3 = volumen
+    # Conversión a m3 para estandarizar el cálculo
+    volumen_m3 = volumen / 1000 if unidades == "Litros (L)" else volumen
 
     # Dosificación por m3
     if resistencia == "2500 PSI":
@@ -134,7 +101,7 @@ def calcular_mezcla(resistencia, volumen, unidades, p_cem, p_are, p_tri, p_adi, 
         if valor == 0: return "0"
         return f"{valor:.5f}" 
 
-    # Desglose por recipientes (aquí entra el balde de 9L)
+    # Desglose por recipientes (aquí entra el nuevo balde de 9L)
     if recipiente != "Unidades Estándar (m³, Litros, Bultos)":
         # Extrae el número (ej. "9") del string de la opción seleccionada
         vol_recipiente = int(recipiente.split(" ")[0]) 
@@ -171,4 +138,98 @@ tab_config, tab_precios, tab_resultados = st.tabs(["Configuración", "Precios de
 with tab_config:
     st.subheader("Parámetros de Diseño")
     col_izq, col_der = st.columns(2)
-    with
+    with col_izq:
+        resistencia = st.selectbox("Resistencia a la compresión:", ["2500 PSI", "3000 PSI", "4000 PSI"])
+        # Precisión de 5 decimales en el input
+        volumen = st.number_input("Volumen requerido:", min_value=0.00001, value=1.0, step=0.00001, format="%.5f")
+        unidades = st.selectbox("Unidades de volumen:", ["Metros Cúbicos (m³)", "Litros (L)"])
+    with col_der:
+        marca_cem = st.selectbox("Marca de Cemento:", ["Cementos Argos", "Cemex", "Holcim", "Sika"])
+        marca_adi = st.selectbox("Marca del Aditivo:", ["Argos", "Cemex", "Holcim", "Sika"])
+        tipo_adi = st.selectbox("Tipo de Aditivo:", ["Ninguno", "Acelerante", "Retardante", "Plastificante", "Para juntas frías"])
+        
+        # AGREGADO: Balde de 9 Litros
+        recipiente = st.selectbox("Medición en obra:", [
+            "Unidades Estándar (m³, Litros, Bultos)", 
+            "19 Litros (Cuñete)", 
+            "12 Litros (Balde grande)", 
+            "10 Litros (Balde mediano)",
+            "9 Litros (Balde)" 
+        ])
+        
+    st.markdown("---")
+    st.subheader("Ubicación de la Obra")
+    col_dep, col_mun = st.columns(2)
+    with col_dep:
+        departamento_seleccionado = st.selectbox("Departamento:", list(lugares_colombia.keys()))
+    with col_mun:
+        municipios_disponibles = lugares_colombia[departamento_seleccionado]
+        municipio_seleccionado = st.selectbox("Municipio:", municipios_disponibles)
+
+with tab_precios:
+    st.subheader("Ajuste de Precios Unitarios")
+    c1, c2 = st.columns(2)
+    with c1:
+        p_cemento = st.number_input(f"Precio Bulto Cemento ({marca_cem})", value=32000)
+        p_arena = st.number_input("Precio Arena (m³)", value=45000)
+    with c2:
+        p_aditivo = st.number_input(f"Precio Litro Aditivo ({marca_adi})", value=12000 if tipo_adi != "Ninguno" else 0)
+        p_tritutado = st.number_input("Precio Triturado (m³)", value=55000)
+
+with tab_resultados:
+    st.subheader("Dosificación Resultante")
+    
+    # Cálculo final
+    res, costo_est = calcular_mezcla(resistencia, volumen, unidades, p_cemento, p_arena, p_tritutado, p_aditivo, recipiente)
+    
+    col_mat1, col_mat2, col_mat3 = st.columns(3)
+    col_mat1.info(f"**Cemento ({marca_cem}):**\n{res['Cemento']}")
+    col_mat1.info(f"**Agua:**\n{res['Agua']}")
+    col_mat2.success(f"**Arena:**\n{res['Arena']}")
+    col_mat2.success(f"**Aditivo ({marca_adi}):**\n{res['Aditivo']}")
+    col_mat3.warning(f"**Triturado:**\n{res['Triturado']}")
+    
+    st.metric("Costo Estimado Total (COP)", f"${costo_est:,.2f}")
+
+    # Diagnóstico Climático
+    st.markdown("---")
+    if departamento_seleccionado != "Seleccione..." and municipio_seleccionado != "Seleccione...":
+        temp, prob, ciudad = obtener_clima_por_ciudad(municipio_seleccionado)
+        
+        if temp is not None:
+            st.markdown(f"<h2 style='text-align: center;'>Estado del Tiempo en {ciudad}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<p style='text-align: center; font-size: 20px;'>Temperatura ambiente: {temp} °C | Probabilidad de lluvia: {prob}%</p>", unsafe_allow_html=True)
+            
+            if prob > 50:
+                st.markdown(f"""
+                <div style="background-color: #FF0000; padding: 30px; border-radius: 15px; border: 4px solid #900C3F; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 1px;">PROTOCOLOS POR PROBABILIDAD DE LLUVIA</h2>
+                    <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
+                        ¡Pilas con el agua! Un aumento imprevisto en la humedad nos cambia la relación agua/cemento y golpea directamente la resistencia f'c. 
+                        Es clave usar un <b>aditivo acelerante</b> para que el concreto fragüe rápido y no se nos lave. 
+                        Tengan los <b>plásticos</b> a la mano para cubrir el frente de vaciado ante cualquier llovizna.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+            elif temp > 28:
+                st.markdown(f"""
+                <div style="background-color: #FF8C00; padding: 30px; border-radius: 15px; border: 4px solid #E67E22; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 1px;">ALERTA POR ALTA TEMPERATURA</h2>
+                    <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
+                        El calor está fuerte y la evaporación rápida nos puede causar fisuras por contracción plástica. 
+                        Para mantener la trabajabilidad, lo ideal es usar un <b>plastificante o retardante</b>. 
+                        No olviden humedecer bien las formaletas y los agregados antes de arrancar para refrescar el vaciado.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                <div style="background-color: #2ECC71; padding: 30px; border-radius: 15px; border: 4px solid #27AE60; text-align: center; box-shadow: 0px 4px 15px rgba(0,0,0,0.3);">
+                    <h2 style="color: white; margin: 0; font-weight: 900; letter-spacing: 1px;">CONDICIONES CLIMÁTICAS ÓPTIMAS</h2>
+                    <p style="color: white; font-size: 19px; margin-top: 20px; font-weight: 700; line-height: 1.5;">
+                        Tenemos un clima ideal para que el diseño de mezcla se comporte según lo planeado. 
+                        No hace falta ningún aditivo extra por clima; enfóquense en asegurar un <b>buen vibrado</b> 
+                        y un acabado pulido para que la estructura quede 1A.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
