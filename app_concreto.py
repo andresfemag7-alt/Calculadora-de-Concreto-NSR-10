@@ -13,6 +13,37 @@ Autores: Ing. Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda C
 # Configuración de pantalla ancha
 st.set_page_config(page_title="Calculadora NSR-10", layout="wide")
 
+# --- BASE DE DATOS DE ADITIVOS DEFINITIVA ---
+# ¿Por qué?: Centraliza los costos reales por litro para automatizar la pestaña de precios.
+# ¿Para qué?: Para cargar valores predeterminados de Sika, Toxement, Master Builders u "Otra marca".
+# ¿Cómo?: Los valores "Bajo cotización" se inicializan en 0 para forzar la entrada manual del usuario sin romper los cálculos numéricos.
+catalogo_precio_por_litro = {
+    "SIKA": {
+        "Acelerante": 34975,         # Basado en Sikaset-L (Garrafa de 5 kg)
+        "Retardante": "Bajo cotización",
+        "Plastificante": 32825,      # Basado en Plastocrete DM (Cuñete)
+        "Para juntas frías": 243994  # Basado en Sikadur-32 Primer (Juego)
+    },
+    "TOXEMENT": {
+        "Acelerante": 25989,         # Basado en Accelguard HE (Garrafa)
+        "Retardante": "Bajo cotización",
+        "Plastificante": "Bajo cotización",
+        "Para juntas frías": 84656    # Basado en Epoxitoc (Galón)
+    },
+    "MASTER BUILDERS": {
+        "Acelerante": "Bajo cotización",
+        "Retardante": "Bajo cotización",
+        "Plastificante": "Bajo cotización",
+        "Para juntas frías": 195000  # Basado en MasterBrace ADH
+    },
+    "Otra marca": {                  # Opción profesional e inclusiva para marcas regionales alternativas
+        "Acelerante": 20000,
+        "Retardante": 20000,
+        "Plastificante": 20000,
+        "Para juntas frías": 50000
+    }
+}
+
 # --- ESTILOS Y FONDO ---
 def cargar_estilos_y_fondo():
     try:
@@ -78,31 +109,39 @@ def obtener_clima_por_ciudad(municipio):
 # --- LÓGICA DE CÁLCULO (NSR-10) ---
 def calcular_mezcla(resistencia, volumen, unidades, p_cem, p_are, p_tri, p_adi, recipiente):
     
-    # Conversión a m3 para estandarizar el cálculo
-    volumen_m3 = volumen / 1000 if unidades == "Litros (L)" else volumen
+    # Conversión a m3 para estandarizar el cálculo aritmético
+    # ¿Por qué?: Para admitir volúmenes microscópicos de laboratorio sin distorsionar las relaciones de masa.
+    if unidades == "Litros (L)":
+        volumen_m3 = volumen / 1000
+    elif unidades == "Centímetros Cúbicos (cm³)":
+        volumen_m3 = volumen / 1000000
+    else:
+        volumen_m3 = volumen
 
-    # Dosificación por m3
+    # Dosificación base por m3 de mezcla según la resistencia seleccionada
     if resistencia == "2500 PSI":
         cem_kg, arena_m3, trit_m3, agua_l = 300 * volumen_m3, 0.50 * volumen_m3, 0.70 * volumen_m3, 170 * volumen_m3
     elif resistencia == "3000 PSI":
         cem_kg, arena_m3, trit_m3, agua_l = 350 * volumen_m3, 0.45 * volumen_m3, 0.70 * volumen_m3, 180 * volumen_m3
-    else: 
+    elif resistencia == "3500 PSI":
+        # Se añade la dosificación para la nueva resistencia intermedia solicitada
+        cem_kg, arena_m3, trit_m3, agua_l = 380 * volumen_m3, 0.42 * volumen_m3, 0.70 * volumen_m3, 190 * volumen_m3
+    else: # 4000 PSI
         cem_kg, arena_m3, trit_m3, agua_l = 420 * volumen_m3, 0.40 * volumen_m3, 0.70 * volumen_m3, 200 * volumen_m3
 
-    # Aditivo basado en peso de cemento
+    # Aditivo basado en peso de cemento (dosificación promedio de seguridad de 1.5%)
     vol_aditivo_L = (cem_kg * 0.015) if p_adi > 0 else 0 
 
-    # Costo total con precios dinámicos
+    # Costo total con precios dinámicos asignados por el constructor
     costo_total = ( (cem_kg/50) * p_cem) + (arena_m3 * p_are) + (trit_m3 * p_tri) + (vol_aditivo_L * p_adi)
 
-    # Formateo a 5 decimales para evitar el error de aproximación a cero
+    # Formateo estricto a 5 decimales para evitar el error de aproximación a cero en cilindros pequeños
     def formatear_numero(valor):
         if valor == 0: return "0"
         return f"{valor:.5f}" 
 
-    # Desglose por recipientes (aquí entra el nuevo balde de 9L)
+    # Desglose por recipientes empíricos de obra
     if recipiente != "Unidades Estándar (m³, Litros, Bultos)":
-        # Extrae el número (ej. "9") del string de la opción seleccionada
         vol_recipiente = int(recipiente.split(" ")[0]) 
         bultos_cemento = cem_kg / 50 
         baldes_arena = (arena_m3 * 1000) / vol_recipiente
@@ -138,16 +177,18 @@ with tab_config:
     st.subheader("Parámetros de Diseño")
     col_izq, col_der = st.columns(2)
     with col_izq:
-        resistencia = st.selectbox("Resistencia a la compresión:", ["2500 PSI", "3000 PSI", "4000 PSI"])
-        # Precisión de 5 decimales en el input
+        # Se integra la nueva opción de resistencia intermedia de 3500 PSI
+        resistencia = st.selectbox("Resistencia a la compresión:", ["2500 PSI", "3000 PSI", "3500 PSI", "4000 PSI"])
+        # Entrada de volumen calibrada con paso milimétrico de 5 decimales
         volumen = st.number_input("Volumen requerido:", min_value=0.00001, value=1.0, step=0.00001, format="%.5f")
-        unidades = st.selectbox("Unidades de volumen:", ["Metros Cúbicos (m³)", "Litros (L)"])
+        # Se añaden los centímetros cúbicos como unidad dimensional volumétrica de laboratorio
+        unidades = st.selectbox("Unidades de volumen:", ["Metros Cúbicos (m³)", "Litros (L)", "Centímetros Cúbicos (cm³)"])
     with col_der:
-        marca_cem = st.selectbox("Marca de Cemento:", ["Cementos Argos", "Cemex", "Holcim", "Sika"])
-        marca_adi = st.selectbox("Marca del Aditivo:", ["Argos", "Cemex", "Holcim", "Sika"])
+        # Se remueve Sika y se añade "Otra marca" respetando a los fabricantes locales
+        marca_cem = st.selectbox("Marca de Cemento:", ["Cementos Argos", "Cemex", "Holcim", "Otra marca"])
+        marca_adi = st.selectbox("Marca del Aditivo:", list(catalogo_precio_por_litro.keys()))
         tipo_adi = st.selectbox("Tipo de Aditivo:", ["Ninguno", "Acelerante", "Retardante", "Plastificante", "Para juntas frías"])
         
-        # AGREGADO: Balde de 9 Litros
         recipiente = st.selectbox("Medición en obra:", [
             "Unidades Estándar (m³, Litros, Bultos)", 
             "19 Litros (Cuñete)", 
@@ -169,16 +210,43 @@ with tab_precios:
     st.subheader("Ajuste de Precios Unitarios")
     c1, c2 = st.columns(2)
     with c1:
-        p_cemento = st.number_input(f"Precio Bulto Cemento ({marca_cem})", value=32000)
-        p_arena = st.number_input("Precio Arena (m³)", value=45000)
+        # Lógica de asignación de precios base según mercado web y fabricante seleccionado
+        if "Holcim" in marca_cem:
+            precio_cem_base = 31300
+        elif "Argos" in marca_cem or "Cemex" in marca_cem:
+            precio_cem_base = 32600
+        else:
+            precio_cem_base = 32000  # Precio promedio base asignado a 'Otra marca'
+
+        p_cemento = st.number_input(f"Precio Bulto Cemento ({marca_cem})", value=precio_cem_base)
+        # Se actualiza el precio promedio nacional de la Arena a 120.000$ por m³
+        p_arena = st.number_input("Precio Arena (m³)", value=120000)
+    
     with c2:
-        p_aditivo = st.number_input(f"Precio Litro Aditivo ({marca_adi})", value=12000 if tipo_adi != "Ninguno" else 0)
-        p_tritutado = st.number_input("Precio Triturado (m³)", value=55000)
+        # Lógica de discriminación para capturar y notificar productos "Bajo cotización"
+        precio_adi_base = 0
+        es_cotizacion = False
+        
+        if tipo_adi != "Ninguno":
+            valor_cat = catalogo_precio_por_litro[marca_adi][tipo_adi]
+            if valor_cat == "Bajo cotización":
+                precio_adi_base = 0
+                es_cotizacion = True
+            else:
+                precio_adi_base = valor_cat
+
+        p_aditivo = st.number_input(f"Precio Litro Aditivo ({marca_adi})", value=precio_adi_base)
+        
+        if es_cotizacion:
+            st.caption("ℹ️ Producto 'Bajo cotización'. Por favor, ingrese el valor manual según su distribuidor.")
+
+        # Se actualiza el precio promedio nacional del Triturado a 135.000$ por m³
+        p_tritutado = st.number_input("Precio Triturado (m³)", value=135000)
 
 with tab_resultados:
     st.subheader("Dosificación Resultante")
     
-    # Cálculo final
+    # Ejecución matricial de los algoritmos de cálculo final
     res, costo_est = calcular_mezcla(resistencia, volumen, unidades, p_cemento, p_arena, p_tritutado, p_aditivo, recipiente)
     
     col_mat1, col_mat2, col_mat3 = st.columns(3)
