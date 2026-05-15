@@ -7,8 +7,7 @@ from ubicaciones import lugares_colombia # Base de datos de municipios
 
 """
 Función del programa: APLICACIÓN WEB PARA DISEÑO DE MEZCLAS DE CONCRETO
-Nombre del script: app_concreto.py
-Autor: Ing. Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda Carvajal.
+Autores: Ing. Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda Carvajal.
 """
 
 # Configuración de pantalla ancha
