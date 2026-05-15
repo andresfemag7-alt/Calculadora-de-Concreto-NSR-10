@@ -14,33 +14,31 @@ Autores: Ing. Civiles Andrés Felipe Madroñero Garces & José Manuel Arboleda C
 st.set_page_config(page_title="Calculadora NSR-10", layout="wide")
 
 # --- BASE DE DATOS DE ADITIVOS ---
-# ¿Por qué?: Porque las marcas reales manejan precios fijos para productos químicos.
-# ¿Para qué?: Para tener un valor por defecto realista en la pestaña de precios.
-# ¿Cómo?: Se crea un diccionario anidado. Los productos "Bajo cotización" se inicializan en 0 para que el usuario los digite.
+# Base de datos definitiva: Precio único por unidad de litro (COP/L)
 catalogo_precio_por_litro = {
     "SIKA": {
-        "Acelerante": 34975,         # Basado en Sikaset-L
-        "Retardante": 0,             # "Bajo cotización"
-        "Plastificante": 32825,      # Basado en Plastocrete DM
-        "Para juntas frías": 243994  # Basado en Sikadur-32
+        "Acelerante": 34975,         # Basado en Sikaset-L (Garrafa de 5 kg)
+        "Retardante": "Bajo cotización",
+        "Plastificante": 32825,      # Basado en Plastocrete DM (Cuñete)
+        "Para juntas frías": 243994  # Basado en Sikadur-32 Primer (Juego)
     },
     "TOXEMENT": {
-        "Acelerante": 25989,         # Basado en Accelguard HE
-        "Retardante": 0,             # "Bajo cotización"
-        "Plastificante": 0,          # "Bajo cotización"
-        "Para juntas frías": 84656   # Basado en Epoxitoc
+        "Acelerante": 25989,         # Basado en Accelguard HE (Garrafa)
+        "Retardante": "Bajo cotización",
+        "Plastificante": "Bajo cotización",
+        "Para juntas frías": 84656    # Basado en Epoxitoc (Galón)
     },
     "MASTER BUILDERS": {
-        "Acelerante": 0,             # "Bajo cotización"
-        "Retardante": 0,             # "Bajo cotización"
-        "Plastificante": 0,          # "Bajo cotización"
+        "Acelerante": "Bajo cotización",
+        "Retardante": "Bajo cotización",
+        "Plastificante": "Bajo cotización",
         "Para juntas frías": 195000  # Basado en MasterBrace ADH
     },
-    "Genérico / Otras marcas": {     # Marca de respaldo
-        "Acelerante": 20000,
-        "Retardante": 20000,
-        "Plastificante": 20000,
-        "Para juntas frías": 50000
+    "Genérico / Otras marcas": {
+        "Acelerante": 0,
+        "Retardante": 0,
+        "Plastificante": 0,
+        "Para juntas frías": 0
     }
 }
 
@@ -109,7 +107,7 @@ def obtener_clima_por_ciudad(municipio):
 # --- LÓGICA DE CÁLCULO (NSR-10) ---
 def calcular_mezcla(resistencia, volumen, unidades, p_cem, p_are, p_tri, p_adi, recipiente):
     
-    # Conversión a m3 para estandarizar el cálculo
+    # Conversión a m3 para estandarizar el cálculo (Añadido cm3)
     if unidades == "Litros (L)":
         volumen_m3 = volumen / 1000
     elif unidades == "Centímetros Cúbicos (cm³)":
@@ -136,7 +134,76 @@ def calcular_mezcla(resistencia, volumen, unidades, p_cem, p_are, p_tri, p_adi, 
         if valor == 0: return "0"
         return f"{valor:.5f}" 
 
-    # Desglose por recipientes
+    # Desglose por recipientes (aquí entra el balde de 9L)
     if recipiente != "Unidades Estándar (m³, Litros, Bultos)":
+        # Extrae el número (ej. "9") del string de la opción seleccionada
         vol_recipiente = int(recipiente.split(" ")[0]) 
-        bultos_c
+        bultos_cemento = cem_kg / 50 
+        baldes_arena = (arena_m3 * 1000) / vol_recipiente
+        baldes_trit = (trit_m3 * 1000) / vol_recipiente
+        baldes_agua = agua_l / vol_recipiente
+        nombre_unidad = "cuñetes" if "Cuñete" in recipiente else "baldes"
+            
+        resultados_texto = {
+            "Cemento": f"{formatear_numero(bultos_cemento)} Bultos",
+            "Arena": f"{formatear_numero(baldes_arena)} {nombre_unidad}",
+            "Triturado": f"{formatear_numero(baldes_trit)} {nombre_unidad}",
+            "Agua": f"{formatear_numero(baldes_agua)} {nombre_unidad}",
+            "Aditivo": f"{formatear_numero(vol_aditivo_L)} L" if vol_aditivo_L > 0 else "No aplica"
+        }
+    else:
+        resultados_texto = {
+            "Cemento": f"{formatear_numero(cem_kg / 50)} Bultos",
+            "Arena": f"{formatear_numero(arena_m3)} m³",
+            "Triturado": f"{formatear_numero(trit_m3)} m³",
+            "Agua": f"{formatear_numero(agua_l)} L",
+            "Aditivo": f"{formatear_numero(vol_aditivo_L)} L" if vol_aditivo_L > 0 else "No aplica"
+        }
+
+    return resultados_texto, costo_total
+
+# --- INTERFAZ ---
+st.title("Calculadora de Concreto NSR-10")
+st.markdown("Plataforma técnica para el diseño de mezclas y dosificación en obra.")
+
+tab_config, tab_precios, tab_resultados = st.tabs(["Configuración", "Precios de Materiales", "Resultados"])
+
+with tab_config:
+    st.subheader("Parámetros de Diseño")
+    col_izq, col_der = st.columns(2)
+    with col_izq:
+        resistencia = st.selectbox("Resistencia a la compresión:", ["2500 PSI", "3000 PSI", "4000 PSI"])
+        # Precisión de 5 decimales en el input
+        volumen = st.number_input("Volumen requerido:", min_value=0.00001, value=1.0, step=0.00001, format="%.5f")
+        # Se añade la unidad de Centímetros Cúbicos
+        unidades = st.selectbox("Unidades de volumen:", ["Metros Cúbicos (m³)", "Litros (L)", "Centímetros Cúbicos (cm³)"])
+    with col_der:
+        # Se retira Sika de los cementos
+        marca_cem = st.selectbox("Marca de Cemento:", ["Cementos Argos", "Cemex", "Holcim"])
+        # Se vincula a las marcas de la base de datos oficial
+        marca_adi = st.selectbox("Marca del Aditivo:", list(catalogo_precio_por_litro.keys()))
+        tipo_adi = st.selectbox("Tipo de Aditivo:", ["Ninguno", "Acelerante", "Retardante", "Plastificante", "Para juntas frías"])
+        
+        recipiente = st.selectbox("Medición en obra:", [
+            "Unidades Estándar (m³, Litros, Bultos)", 
+            "19 Litros (Cuñete)", 
+            "12 Litros (Balde grande)", 
+            "10 Litros (Balde mediano)",
+            "9 Litros (Balde)" 
+        ])
+        
+    st.markdown("---")
+    st.subheader("Ubicación de la Obra")
+    col_dep, col_mun = st.columns(2)
+    with col_dep:
+        departamento_seleccionado = st.selectbox("Departamento:", list(lugares_colombia.keys()))
+    with col_mun:
+        municipios_disponibles = lugares_colombia[departamento_seleccionado]
+        municipio_seleccionado = st.selectbox("Municipio:", municipios_disponibles)
+
+with tab_precios:
+    st.subheader("Ajuste de Precios Unitarios")
+    c1, c2 = st.columns(2)
+    with c1:
+        # Lógica para precios base de cemento según fabricante
+        if marca_cem
