@@ -110,9 +110,6 @@ def obtener_clima_por_ciudad(municipio):
 def calcular_mezcla(resistencia, volumen, unidades, p_cem, p_are, p_tri, p_adi, recipiente):
     
     # Conversión a m3 para estandarizar el cálculo
-    # ¿Por qué?: Las dosificaciones teóricas siempre se dan por m3 de mezcla.
-    # ¿Para qué?: Para permitir que el usuario ingrese Litros o cm3 según necesite.
-    # ¿Cómo?: Se añaden condicionales que dividen entre 1000 (Litros) o 1,000,000 (cm3).
     if unidades == "Litros (L)":
         volumen_m3 = volumen / 1000
     elif unidades == "Centímetros Cúbicos (cm³)":
@@ -139,59 +136,7 @@ def calcular_mezcla(resistencia, volumen, unidades, p_cem, p_are, p_tri, p_adi, 
         if valor == 0: return "0"
         return f"{valor:.5f}" 
 
-    # Desglose por recipientes (aquí entra el nuevo balde de 9L)
+    # Desglose por recipientes
     if recipiente != "Unidades Estándar (m³, Litros, Bultos)":
         vol_recipiente = int(recipiente.split(" ")[0]) 
-        bultos_cemento = cem_kg / 50 
-        baldes_arena = (arena_m3 * 1000) / vol_recipiente
-        baldes_trit = (trit_m3 * 1000) / vol_recipiente
-        baldes_agua = agua_l / vol_recipiente
-        nombre_unidad = "cuñetes" if "Cuñete" in recipiente else "baldes"
-            
-        resultados_texto = {
-            "Cemento": f"{formatear_numero(bultos_cemento)} Bultos",
-            "Arena": f"{formatear_numero(baldes_arena)} {nombre_unidad}",
-            "Triturado": f"{formatear_numero(baldes_trit)} {nombre_unidad}",
-            "Agua": f"{formatear_numero(baldes_agua)} {nombre_unidad}",
-            "Aditivo": f"{formatear_numero(vol_aditivo_L)} L" if vol_aditivo_L > 0 else "No aplica"
-        }
-    else:
-        resultados_texto = {
-            "Cemento": f"{formatear_numero(cem_kg / 50)} Bultos",
-            "Arena": f"{formatear_numero(arena_m3)} m³",
-            "Triturado": f"{formatear_numero(trit_m3)} m³",
-            "Agua": f"{formatear_numero(agua_l)} L",
-            "Aditivo": f"{formatear_numero(vol_aditivo_L)} L" if vol_aditivo_L > 0 else "No aplica"
-        }
-
-    return resultados_texto, costo_total
-
-# --- INTERFAZ ---
-st.title("Calculadora de Concreto NSR-10")
-st.markdown("Plataforma técnica para el diseño de mezclas y dosificación en obra.")
-
-tab_config, tab_precios, tab_resultados = st.tabs(["Configuración", "Precios de Materiales", "Resultados"])
-
-with tab_config:
-    st.subheader("Parámetros de Diseño")
-    col_izq, col_der = st.columns(2)
-    with col_izq:
-        resistencia = st.selectbox("Resistencia a la compresión:", ["2500 PSI", "3000 PSI", "4000 PSI"])
-        # Precisión de 5 decimales en el input
-        volumen = st.number_input("Volumen requerido:", min_value=0.00001, value=1.0, step=0.00001, format="%.5f")
-        # SE MODIFICÓ: Se añaden los centímetros cúbicos al menú desplegable.
-        unidades = st.selectbox("Unidades de volumen:", ["Metros Cúbicos (m³)", "Litros (L)", "Centímetros Cúbicos (cm³)"])
-    with col_der:
-        # SE MODIFICÓ: Se quitó 'Sika' ya que no fabrican cementos estructurales puros en saco.
-        marca_cem = st.selectbox("Marca de Cemento:", ["Cementos Argos", "Cemex", "Holcim"])
-        # SE MODIFICÓ: Ahora toma las marcas de aditivo de las llaves del nuevo diccionario.
-        marca_adi = st.selectbox("Marca del Aditivo:", list(catalogo_precio_por_litro.keys()))
-        tipo_adi = st.selectbox("Tipo de Aditivo:", ["Ninguno", "Acelerante", "Retardante", "Plastificante", "Para juntas frías"])
-        
-        # AGREGADO: Balde de 9 Litros
-        recipiente = st.selectbox("Medición en obra:", [
-            "Unidades Estándar (m³, Litros, Bultos)", 
-            "19 Litros (Cuñete)", 
-            "12 Litros (Balde grande)", 
-            "10 Litros (Balde mediano)",
-            "9 Litros (Balde)"
+        bultos_c
