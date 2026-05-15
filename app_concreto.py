@@ -171,39 +171,4 @@ tab_config, tab_precios, tab_resultados = st.tabs(["Configuración", "Precios de
 with tab_config:
     st.subheader("Parámetros de Diseño")
     col_izq, col_der = st.columns(2)
-    with col_izq:
-        resistencia = st.selectbox("Resistencia a la compresión:", ["2500 PSI", "3000 PSI", "4000 PSI"])
-        # Precisión de 5 decimales en el input
-        volumen = st.number_input("Volumen requerido:", min_value=0.00001, value=1.0, step=0.00001, format="%.5f")
-        # Se añade la unidad de Centímetros Cúbicos
-        unidades = st.selectbox("Unidades de volumen:", ["Metros Cúbicos (m³)", "Litros (L)", "Centímetros Cúbicos (cm³)"])
-    with col_der:
-        # Se retira Sika de los cementos
-        marca_cem = st.selectbox("Marca de Cemento:", ["Cementos Argos", "Cemex", "Holcim"])
-        # Se vincula a las marcas de la base de datos oficial
-        marca_adi = st.selectbox("Marca del Aditivo:", list(catalogo_precio_por_litro.keys()))
-        tipo_adi = st.selectbox("Tipo de Aditivo:", ["Ninguno", "Acelerante", "Retardante", "Plastificante", "Para juntas frías"])
-        
-        recipiente = st.selectbox("Medición en obra:", [
-            "Unidades Estándar (m³, Litros, Bultos)", 
-            "19 Litros (Cuñete)", 
-            "12 Litros (Balde grande)", 
-            "10 Litros (Balde mediano)",
-            "9 Litros (Balde)" 
-        ])
-        
-    st.markdown("---")
-    st.subheader("Ubicación de la Obra")
-    col_dep, col_mun = st.columns(2)
-    with col_dep:
-        departamento_seleccionado = st.selectbox("Departamento:", list(lugares_colombia.keys()))
-    with col_mun:
-        municipios_disponibles = lugares_colombia[departamento_seleccionado]
-        municipio_seleccionado = st.selectbox("Municipio:", municipios_disponibles)
-
-with tab_precios:
-    st.subheader("Ajuste de Precios Unitarios")
-    c1, c2 = st.columns(2)
-    with c1:
-        # Lógica para precios base de cemento según fabricante
-        if marca_cem
+    with
