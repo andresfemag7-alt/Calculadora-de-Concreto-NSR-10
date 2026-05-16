@@ -47,7 +47,7 @@ catalogo_precio_por_litro = {
 # --- ESTILOS Y FONDO ---
 def cargar_estilos_y_fondo():
     try:
-        with open("fondo2.png", "rb") as image_file:
+        with open("fondo4.png", "rb") as image_file:
             imagen_base64 = base64.b64encode(image_file.read()).decode()
             
         css = f"""
