@@ -3,7 +3,7 @@ import pandas as pd     # Manejo de datos
 import plotly.express as px  # Gráficas
 import base64           # Procesamiento de imagen de fondo
 import requests         # Consulta de API de clima
-from ubicaciones import lugares_colombia # Base de datos de municipios
+from ubicaciones import lugares_colombia # Base de datos de municipios 
 
 """
 Función del programa: APLICACIÓN WEB PARA DISEÑO DE MEZCLAS DE CONCRETO
